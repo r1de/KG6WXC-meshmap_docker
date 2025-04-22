@@ -1,0 +1,64 @@
+volumes:
+  shared_data:
+  db:
+
+networks:
+  frontend:
+  backend:
+
+services:
+  web:
+    container_name: meshmap_web
+    image: ghcr.io/starkzarn/meshmap-web:latest
+    restart: unless-stopped
+    ports:
+      - 80:8080
+    volumes:
+      - shared_data:/var/www/html/meshmap:z
+    depends_on:
+      - backend
+    networks:
+      - frontend
+
+  backend:
+    container_name: meshmap_backend
+    image: ghcr.io/starkzarn/meshmap-backend:latest
+    restart: unless-stopped
+    environment:
+      - DB_HOST=${DB_HOST:-db}
+      - DB_NAME=${DB_NAME:-node_map}
+      - DB_PASS=${DB_PASS:?DB_PASS is required}
+      - DB_USER=${DB_USER:-mesh-map}
+      - EXPIRE_NODES_BOOL=${EXPIRE_NODES_BOOL:-true}
+      - KILOMETERS_BOOL=${KILOMETERS_BOOL:-false}
+      - LOCALNODE_HOSTNAME=${LOCALNODE_HOSTNAME:-localnode.local.mesh}
+      - MAP_LAT=${MAP_LAT:-45}
+      - MAP_LONG=${MAP_LONG:-123}
+      - NODE_EXPIRE_INTERVAL=${NODE_EXPIRE_INTERVAL:-300}
+    volumes:
+      - shared_data:/var/www/html/meshmap:z
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    container_name: meshmap_db
+    image: mariadb:11
+    environment:
+      - MARIADB_DATABASE=${DB_NAME:-node_map}
+      - MARIADB_PASSWORD=${DB_PASS:?DB_PASS is required}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
+      - MARIADB_AUTO_UPGRADE=${MARIADB_AUTO_UPGRADE:-True}
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - db:/var/lib/mysql:Z
+      - ./meshmap_db_import.sql:/docker-entrypoint-initdb.d/meshmap_db_import.sql:z:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10

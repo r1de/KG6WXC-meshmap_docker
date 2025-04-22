@@ -1,0 +1,139 @@
+[user-settings]
+;-------------------------------------------------------------
+;Default Settings for KG6WXC MeshMap
+;Feb - 2025
+;
+;***IMPORTANT***
+;This file should not be edited directly, please retain it "as is" for future changes.
+;Copy this file to: "user-settings.ini" in this same directory and make your changes there.
+;
+;This default file is read in first, and your personal settings override these defaults.
+;
+;You want to make your changes in between the quotes, 
+;ie: localnode = "10.x.x.x"
+;
+;Each section has comments that should explain what they are for.
+;-------------------------------------------------------------
+
+;;Your localnode's IP address or hostname
+;The system running the Polling script should be able to resolve the host name.
+;If it cannot, you'll need to change this to an IP address.
+;Just leave it set at "localnode.local.mesh" unless you need to change it.
+;--------------------------------------------------------------
+localnode = ${LOCALNODE_HOSTNAME}
+
+;;SQL Type
+;meshmap still uses MariaDB as default.
+;SQLite3 support is still planned for the future.
+;Options now are: "mysql" only.
+SQL_TYPE = "mysql"
+
+;;SQL username, password, database name, table names.
+;ONLY NEED TO CHANGE THESE IF YOU ARE USING A MYSQL SERVER
+;The SQL server does not have to be on the system that is running the polling script.
+;You **must** at least update sql_user, sql_passwd, and sql_server to reflect *your* environment!
+;You probably do not want to (and should not) change the sql_db* entries unless you really know what you are doing!
+;-------------------------------------------------------------
+sql_server = ${DB_HOST}
+sql_user = ${DB_USER}
+sql_passwd = ${DB_PASS}
+sql_db = ${DB_NAME}
+sql_db_tbl = "node_info"
+
+;;Node expiration intervals
+;after how many *days* do nodes get removed when we have not heard from them?
+;Set expire_old_nodes to "true" to actually expire the old nodes. "false" will not expire any nodes.
+;--------------------------------------------------------------
+expire_old_nodes = ${EXPIRE_NODES_BOOL}
+node_expire_interval = ${NODE_EXPIRE_INTERVAL}
+
+;;Current firmware version.
+;This will check the internet for the current aredn versions.
+;"Offline" manual check coming back soon
+;--------------------------------------------------------------
+AREDN_VERSION_CHECK_URL = "http://downloads.arednmesh.org/afs/www/config.js"
+aredn_firmware_check = "true"
+;current_stable_fw_version = "3.22.12"
+
+;;Polling is always run in parallel now.
+;a separate php script is spawned for each node on the network,
+;this runs much faster timewise.
+;it probably doesn't use more resources than doing it sequetially, it just does it all in one big burst.
+;Set to how many nodes to poll at once, the script will keep this many going until all are done.
+;What happens is that you end up with a handful of timeouts at the end.
+;--------------------------------------------------------------
+numParallelThreads = "60"
+
+;;Map Center Coordinates and starting zoom level
+;These are the coordinates for the center of the map on the webpage, and the initial Zoom Level.
+;This will probably take some experimenting to get just right.
+;These values are for Ventura and Santa Barbara Counties in California, USA.
+;--------------------------------------------------------------
+map_center_coordinates['lat'] = ${MAP_LAT}
+map_center_coordinates['lon'] = ${MAP_LONG}
+map_initial_zoom_level = "10"
+
+;;Prefer Kilometers over Miles?
+;change to "true" to flip the preference
+;the map page will then show 1km (1.62mi)
+kilometers = ${KILOMETERS_BOOL}
+
+;;Map Tile servers you wish to use
+;If you wish to add more, just create a new line in the same fashion.
+;ie: mapTileServers['Name of Map'] = "//new.server.name/tiles/blah/blah/{z}/{x}/{y}.png"
+;
+;They can even be directories that contain map tiles in the correct directory structure.
+;If you do use a directory name, it must be relative to the webroot.
+;This could be used in an offline state from tiles that have been pre-cached,
+;or downloaded from other programs such as Xastir.
+;ie: mapTileServers['osm_tiles/{z}/{x}/{y}.png']
+;
+;You could add them to your hearts content! Try not to go overboard. :)
+;
+;Append the string "-default" to the name of the map you'd like to have shown by default
+;
+;You must include the /{z}/{x}/{y}.png here, but make sure your using the right one
+;for the server you are using.
+;"/{z}/{x}/{y}.png" is just an example but should work for most.
+;--------------------------------------------------------------
+mapTileServers['Topographic'] = "//{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+mapTileServers['Street-default'] = "//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+mapTileServers['Satellite'] = "//basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}"
+
+;;*NOTE*
+;Any any tile server with ".local.mesh" in it's URL will be used in place of the others
+;when the webpage is hosted and accessed from the mesh network.
+;This is an attempt to keep this map working in a total "offline" state.
+;This behavior is disabled by default, uncomment and update the URL to use
+;mapTileServers['KG6WXC on AREDN'] = "//kg6wxc-osm.local.mesh/osm_tiles/{z}/{x}/{y}.png"
+
+;;The Title of the web page, web page logo and the text above the map.
+;--------------------------------------------------------------
+pageTitle = "KG6WXC MeshMap [Docker Edition]"
+attribution = "KG6WXC and W7SLZ"
+mapContact = "W7SLZ (w7slz@zarn.me)"
+
+;;Local Webpage Data Files Directory
+;This is where the polling script will save the java files for the webpage.
+;Wherever you copied the webpage files to, there is a "data" directory, use that path.
+;*NOTE*
+;If the webpage will run on a seperate system and use the "Upload To Cloud" feature (below),
+;than this could be any directory that the polling script has write permissions to.
+;
+;USE A FULL PATH! example: "/var/www/html/meshmap/data"
+;---------------------------------------------------------------
+webpageDataDir = "/var/www/html/meshmap/data"
+
+;;Used to get the map data out to another system on or off the mesh network.
+;;THIS IS AN ADVANCED FEATURE
+;;You will either understand how to use or not.
+;;I can't explain it all here, there is no room!
+;;**NOTE**
+;This requires ssh access to the remote system
+;AND that you setup an SSH keyfile without a password ON BOTH systems first.
+;If none of that made sense just leave it commented!
+;---------------------------------------------------------------
+;uploadToCloud = false
+;cloudSSHKeyFile = "/home/username/.ssh/id_rsa"
+;cloudServer['ExampleName'] = "user@host:directory"
+;;cloudServer['ExampleName2'] = "user@host:directory"
