@@ -7,9 +7,19 @@ networks:
   backend:
 
 services:
+  shared_data_setup:
+    image: alpine
+    restart: "no"
+    volumes:
+      - shared_data:/var/www/html/meshmap
+    command: sh -c "mkdir -p /var/www/html/meshmap/data && chown -R 500:500 /var/www/html/meshmap"
+
   web:
     container_name: meshmap_web
-    image: ghcr.io/starkzarn/meshmap-web:latest
+#    image: ghcr.io/starkzarn/meshmap-web:latest
+    build:
+      context: ../KG6WXC-meshmap-webpage_docker
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - 80:8080
@@ -22,13 +32,16 @@ services:
 
   backend:
     container_name: meshmap_backend
-    image: ghcr.io/starkzarn/meshmap-backend:latest
+#    image: ghcr.io/starkzarn/meshmap-backend:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      - DB_HOST=${DB_HOST:-db}
+      - DB_HOST=${DB_HOST:-meshmap_db}
       - DB_NAME=${DB_NAME:-node_map}
       - DB_PASS=${DB_PASS:?DB_PASS is required}
-      - DB_USER=${DB_USER:-mesh-map}
+      - DB_USER=${DB_USER:-root}
       - EXPIRE_NODES_BOOL=${EXPIRE_NODES_BOOL:-true}
       - KILOMETERS_BOOL=${KILOMETERS_BOOL:-false}
       - LOCALNODE_HOSTNAME=${LOCALNODE_HOSTNAME:-localnode.local.mesh}
@@ -41,9 +54,12 @@ services:
       - backend
       - frontend
     depends_on:
-      db:
-        condition: service_healthy
-
+#      db:
+#        condition: service_healthy
+#      shared_data_setup:
+#        condition: service_completed_successfully
+      - shared_data_setup
+      - db
   db:
     container_name: meshmap_db
     image: mariadb:11
@@ -57,8 +73,9 @@ services:
       - backend
     volumes:
       - db:/var/lib/mysql:Z
-      - ./meshmap_db_import.sql:/docker-entrypoint-initdb.d/meshmap_db_import.sql:z:ro
-    healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+      - ./meshmap_db_import.sql:/docker-entrypoint-initdb.d/meshmap_db_import.sql:z,ro
+#    healthcheck:
+#      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+#      test: ["CMD-SHELL", "mysqladmin ping"]
+#      timeout: 20s
+#      retries: 10

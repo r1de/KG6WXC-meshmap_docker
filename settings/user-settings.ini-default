@@ -133,7 +133,7 @@ webpageDataDir = "/var/www/html/meshmap/data"
 ;AND that you setup an SSH keyfile without a password ON BOTH systems first.
 ;If none of that made sense just leave it commented!
 ;---------------------------------------------------------------
-;uploadToCloud = false
+uploadToCloud = false
 ;cloudSSHKeyFile = "/home/username/.ssh/id_rsa"
 ;cloudServer['ExampleName'] = "user@host:directory"
 ;;cloudServer['ExampleName2'] = "user@host:directory"
